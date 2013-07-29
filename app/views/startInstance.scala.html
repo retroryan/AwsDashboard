@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+
+<script src="http://code.jquery.com/jquery-1.7.2.js" type="text/javascript"></script>
+
+<script>
+
+    $(function () {
+
+        $("#startInstanceReq").bind('click', function () {
+             startInstanceReq("startInstanceReq");
+        });
+
+        getDefaultEc2Req("getDefaultEc2Req")
+    });
+
+    function startInstanceReq(startInstanceReqUrl) {
+        var region = $("#region").val()
+        var imageId = $("#imageId").val()
+        var size = $("#size").val()
+        var userData = $("#userData").val()
+        var numInstances = $("#numInstances").val()
+
+        if (imageId === "") {
+            alert("Please enter the image id.")
+            return
+        }
+
+        var startInstanceReqJson = JSON.stringify({region: region, imageId: imageId, size: size, userData: userData, numInstances: numInstances})
+        console.log("sending " + startInstanceReqJson)
+
+        $("#requestStatus").empty()
+        $("#startNodesList").empty()
+
+        jqxhr = $.ajax({
+            url: "../" + startInstanceReqUrl,
+            data: startInstanceReqJson,
+            contentType: "application/json",
+            type: "POST",
+            dataType: "json"
+        })
+
+        jqxhr.done(
+                function (data) {
+                    console.log("requested data =>" + data)
+                    data.forEach(function (instanceId) {
+                        $("#startNodesList").append("<li>" + instanceId + "</li>")
+                    })
+                })
+
+        jqxhr.fail(
+                function (data, textStatus, errorThrown) {
+                    console.log("error:" + data)
+                })
+    }
+
+    function getDefaultEc2Req(getDefaultEc2Req) {
+        jqxhr = $.ajax({
+            url: "../" + getDefaultEc2Req,
+            type: "GET"
+        })
+
+        jqxhr.done(
+            function (data) {
+                console.log("requested data =>" + data)
+                $("#region").val(data.region)
+                $("#imageId").val(data.imageId)
+                $("#size").val(data.size)
+        })
+
+        jqxhr.fail(
+            function (data, textStatus, errorThrown) {
+            console.log("error:" + data)
+        })
+    }
+
+</script>
+
+<body>
+
+<H3>Region: <input type="text" id="region"/></H3>
+<H3>Image ID: <input type="text" id="imageId"/></H3>
+<H3>Size: <input type="text" id="size"/></H3>
+<H3>User Data: <input type="text" id="userData" /></H3>
+<H3>Number of instances: <input type="text" id="numInstances" value="1"/></H3>
+
+<input type="submit" value="Start Nodes Request " id="startInstanceReq"/>
+
+<H3> List of Created Instances </H3>
+<ul id="startNodesList">
+</ul>
+
+
+</body>
+</html>
+
